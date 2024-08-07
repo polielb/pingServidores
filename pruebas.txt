@@ -1,0 +1,10 @@
+sudo docker rm -f mi-controlador-ping
+sudo docker rmi panel-control-ping-imagen
+
+imagen 
+sudo docker build -t panel-control-ping-imagen .
+
+contenedor 
+sudo docker run -d -p 8077:3000 --name mi-controlador-ping panel-control-ping-imagen
+
+ curl -X POST http://10.0.53.171:8077/update_status -H "Content-Type: application/json" -d "{\"serverIp\":\"53.36\",\"pingIp\":\"52.12\",\"success\":true}"

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Pings</title>
+</head>
+<body>
+    <div id="pings">
+        <!-- Aquí se generarán los divs dinámicamente -->
+    </div>
+
+<script>
+    // Función para actualizar el estado de los pings
+    function updatePingStatus(serverIp, pingIp, color) {
+        var divId = serverIp + '-' + pingIp;
+        var div = document.getElementById(divId);
+        if (!div) {
+            div = document.createElement('div');
+            div.id = divId;
+            div.textContent = `Ping de ${serverIp} a ${pingIp}`;
+            document.getElementById('pings').appendChild(div);
+        }
+        div.style.backgroundColor = color;
+    }
+
+    // Función para recibir actualizaciones de estado
+    var eventSource = new EventSource('/status');
+    eventSource.onmessage = function(event) {
+        console.log('Mensaje recibido del servidor:', event.data); // Agrega este console.log
+        var statusMap = JSON.parse(event.data);
+        for (var serverIp in statusMap) {
+            for (var pingIp in statusMap[serverIp]) {
+                var color = statusMap[serverIp][pingIp];
+                updatePingStatus(serverIp, pingIp, color);
+            }
+        }
+
+        // Eliminar los divs que ya no están en el estado actual
+        var existingDivs = document.querySelectorAll('#pings div');
+        existingDivs.forEach(function(div) {
+            var ids = div.id.split('-');
+            var serverIp = ids[0];
+            var pingIp = ids[1];
+            if (!(serverIp in statusMap) || !(pingIp in statusMap[serverIp])) {
+                div.remove();
+            }
+        });
+    };
+
+    // Temporizador para recargar la página cada 5 segundos
+    setInterval(function() {
+        location.reload();
+    }, 5000);
+</script>
+
+</body>
+</html>
+
